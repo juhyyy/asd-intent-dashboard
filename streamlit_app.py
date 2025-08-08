@@ -271,6 +271,7 @@ show_cols = ["timestamp","child_id","session_id","intent_pred","confidence",
 csv_bytes = fdf[show_cols].to_csv(index=False).encode("utf-8-sig")
 st.download_button("Download filtered CSV", csv_bytes,
                    file_name="utterances_filtered.csv", mime="text/csv")
+
 st.subheader("WordCloud (by intent)")
 wc_opts = [i for i in INTENTS if i in fdf["intent_pred"].unique()]
 if len(wc_opts):
@@ -280,27 +281,28 @@ if len(wc_opts):
         texts = wc_df["stt_text"].dropna().astype(str).tolist()
         if "keywords" in wc_df.columns:
             texts += wc_df["keywords"].dropna().astype(str).tolist()
-        # 쉼표를 공백으로 바꿔서 토큰화에 유리하게
+
+        # 쉼표 → 공백 치환해서 토큰화 개선
         corpus = " ".join(t.replace(",", " ") for t in texts)
 
-        # 👉 한글 폰트 경로 지정: 사이드바 입력값이 없으면 기본값 사용
-        font_path = font_path_override or "C:/Windows/Fonts/malgun.ttf"
+        # 레포에 넣어둔 폰트 우선 사용 (없으면 사이드바 경로나 None)
+        from pathlib import Path
+        bundled = "fonts/NanumGothic.ttf"
+        font_path = bundled if Path(bundled).exists() else (font_path_override or None)
 
-        from wordcloud import WordCloud
         wc = WordCloud(
-                width=800,
-                height=400,
-                background_color="white",
-                collocations=False,
-                font_path="fonts/NanumGothic.ttf"  # 여기만 추가
-            ).generate(text_data)
-
-
-        st.image(wc.to_array(), use_column_width=True, caption=f"WordCloud — {wc_intent}")
+            width=800,
+            height=400,
+            background_color="white",
+            collocations=False,
+            font_path=font_path
+        ).generate(corpus)  # ✅ 여기서 corpus 사용
+        st.image(wc.to_array(), use_container_width=True, caption=f"WordCloud — {wc_intent}")
     elif not _HAS_WC:
         st.info("`pip install wordcloud` 후 다시 실행하세요.")
     else:
         st.info("선택한 인텐트에 텍스트가 없습니다.")
+
 
 st.subheader("Before / After — intent ratio comparison")
 
