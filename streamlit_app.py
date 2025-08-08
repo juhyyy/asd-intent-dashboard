@@ -288,12 +288,13 @@ if len(wc_opts):
 
         from wordcloud import WordCloud
         wc = WordCloud(
-            width=900,
-            height=450,
-            background_color="white",
-            collocations=False,
-            font_path=font_path,
-        ).generate(corpus)
+                width=800,
+                height=400,
+                background_color="white",
+                collocations=False,
+                font_path="fonts/NanumGothic.ttf"  # 여기만 추가
+            ).generate(text_data)
+
 
         st.image(wc.to_array(), use_column_width=True, caption=f"WordCloud — {wc_intent}")
     elif not _HAS_WC:
